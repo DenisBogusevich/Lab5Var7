@@ -1,8 +1,13 @@
 package com.example.lab5var7
 import android.content.ContentValues
 import android.content.Context
+import android.database.sqlite.SQLiteConstraintException
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
+import androidx.room.Dao
+import androidx.room.Database
+import androidx.room.Query
+import androidx.room.RoomDatabase
 
 private const val DATABASE_NAME = "jokes.db"
 private const val DATABASE_VERSION = 1
@@ -24,13 +29,14 @@ class JokeDatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_
      */
     override fun onCreate(db: SQLiteDatabase) {
         val createTable = """
-            CREATE TABLE $TABLE_JOKES (
-                $COLUMN_ID INTEGER PRIMARY KEY AUTOINCREMENT,
-                $COLUMN_TYPE TEXT,
-                $COLUMN_SETUP TEXT,
-                $COLUMN_PUNCHLINE TEXT
-            )
-        """.trimIndent()
+        CREATE TABLE $TABLE_JOKES (
+            $COLUMN_ID INTEGER PRIMARY KEY,
+            $COLUMN_TYPE TEXT,
+            $COLUMN_SETUP TEXT,
+            $COLUMN_PUNCHLINE TEXT,
+            UNIQUE($COLUMN_ID) ON CONFLICT ABORT
+        )
+    """.trimIndent()
         db.execSQL(createTable)
     }
 
@@ -56,7 +62,7 @@ class JokeDatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_
             put(COLUMN_SETUP, joke.setup)
             put(COLUMN_PUNCHLINE, joke.punchline)
         }
-        db.insert(TABLE_JOKES, null, values)
+          db.insertOrThrow(TABLE_JOKES, null, values)
     }
     /**
      * Retrieves all jokes from the database.
@@ -86,3 +92,4 @@ class JokeDatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_
         db.delete(TABLE_JOKES, null, null)
     }
 }
+
