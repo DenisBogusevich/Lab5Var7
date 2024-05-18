@@ -1,43 +1,54 @@
 package com.example.lab5var7
 
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-
 /**
- * ViewModel to manage joke data and state.
+ * ViewModel class to manage UI-related data in a lifecycle-conscious way.
+ * Uses the AndroidViewModel class to have access to the application context.
+ *
+ * @param application The application context.
  */
-class JokeViewModel : ViewModel() {
+class JokeViewModel(application: Application) : AndroidViewModel(application) {
+    private val jokeDatabaseHelper = JokeDatabaseHelper(application)
+
     private val _currentJoke = MutableStateFlow<Joke?>(null)
     val currentJoke: StateFlow<Joke?> get() = _currentJoke
 
     private val _history = MutableStateFlow<List<Joke>>(emptyList())
-
     val history: StateFlow<List<Joke>> get() = _history
-    /**
-     * Fetch a new random joke and update the current joke and history.
-     */
+
+    init {
+        viewModelScope.launch(Dispatchers.IO) {
+            _history.value = jokeDatabaseHelper.getAllJokes()
+        }
+    }
+
     fun fetchNewJoke() {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             try {
                 val newJoke = JokeApi.retrofitService.getRandomJoke()
+                jokeDatabaseHelper.insertJoke(newJoke)
                 _currentJoke.value = newJoke
-                _history.value += newJoke
-                println(history.value)
-
+                _history.value = jokeDatabaseHelper.getAllJokes()
             } catch (e: Exception) {
                 // Handle error
             }
         }
     }
-    /**
-     * Select a joke from history and set it as the current joke.
-     *
-     * @param joke The joke to be set as the current joke.
-     */
+
     fun selectJokeFromHistory(joke: Joke) {
         _currentJoke.value = joke
+    }
+
+    fun clearAllJokes() {
+        viewModelScope.launch(Dispatchers.IO) {
+            jokeDatabaseHelper.clearAllJokes()
+            _history.value = jokeDatabaseHelper.getAllJokes()
+        }
     }
 }
