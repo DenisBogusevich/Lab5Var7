@@ -7,7 +7,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-
+/**
+ * ViewModel class to manage UI-related data in a lifecycle-conscious way.
+ * Uses the AndroidViewModel class to have access to the application context.
+ *
+ * @param application The application context.
+ */
 class JokeViewModel(application: Application) : AndroidViewModel(application) {
     private val jokeDatabaseHelper = JokeDatabaseHelper(application)
 

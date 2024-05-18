@@ -12,7 +12,16 @@ private const val COLUMN_TYPE = "type"
 private const val COLUMN_SETUP = "setup"
 private const val COLUMN_PUNCHLINE = "punchline"
 
+/**
+ * SQLiteOpenHelper subclass to manage database creation and version management.
+ *
+ * @param context The application context.
+ */
 class JokeDatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION) {
+    /**
+     * Called when the database is created for the first time.
+     * @param db The database.
+     */
     override fun onCreate(db: SQLiteDatabase) {
         val createTable = """
             CREATE TABLE $TABLE_JOKES (
@@ -25,11 +34,21 @@ class JokeDatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_
         db.execSQL(createTable)
     }
 
+    /**
+     * Called when the database needs to be upgraded.
+     * @param db The database.
+     * @param oldVersion The old database version.
+     * @param newVersion The new database version.
+     */
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
         db.execSQL("DROP TABLE IF EXISTS $TABLE_JOKES")
         onCreate(db)
     }
 
+    /**
+     * Inserts a joke into the database.
+     * @param joke The joke to be inserted.
+     */
     fun insertJoke(joke: Joke) {
         val db = writableDatabase
         val values = ContentValues().apply {
@@ -39,7 +58,10 @@ class JokeDatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_
         }
         db.insert(TABLE_JOKES, null, values)
     }
-
+    /**
+     * Retrieves all jokes from the database.
+     * @return A list of all jokes.
+     */
     fun getAllJokes(): List<Joke> {
         val db = readableDatabase
         val jokes = mutableListOf<Joke>()
@@ -56,7 +78,9 @@ class JokeDatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_
         cursor.close()
         return jokes
     }
-
+    /**
+     * Clears all jokes from the database.
+     */
     fun clearAllJokes() {
         val db = writableDatabase
         db.delete(TABLE_JOKES, null, null)
