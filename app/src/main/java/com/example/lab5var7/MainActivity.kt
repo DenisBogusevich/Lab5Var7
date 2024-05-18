@@ -27,15 +27,18 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import kotlinx.coroutines.launch
 
 /**
  * MainActivity class that sets up the navigation and initializes the ViewModel.
@@ -64,11 +67,16 @@ class MainActivity : ComponentActivity() {
  * @param viewModel The ViewModel to manage joke data.
  */
 @OptIn(ExperimentalMaterial3Api::class)
+
 @Composable
 fun MainScreen(navController: NavController, viewModel: JokeViewModel) {
     val currentJoke by viewModel.currentJoke.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
 
+    LaunchedEffect(Unit) {
+        viewModel.fetchNewJoke()
+    }
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -91,7 +99,9 @@ fun MainScreen(navController: NavController, viewModel: JokeViewModel) {
                 Spacer(modifier = Modifier.height(16.dp))
                 Button(onClick = {
                     viewModel.fetchNewJoke()
-
+                    scope.launch {
+                        snackbarHostState.showSnackbar("Fetching new joke...")
+                    }
                 }) {
                     Text("New Joke")
                 }
@@ -127,25 +137,31 @@ fun HistoryScreen(navController: NavController, viewModel: JokeViewModel) {
             )
         },
         content = { padding ->
-            LazyColumn(
+            Column(
                 modifier = Modifier
                     .padding(padding)
                     .padding(16.dp)
                     .fillMaxSize()
             ) {
-                items(history) { joke ->
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable {
-                                viewModel.selectJokeFromHistory(joke)
-                                navController.popBackStack()
-                            }
-                            .padding(8.dp)
-                    ) {
-                        Text(text = joke.setup, style = MaterialTheme.typography.headlineSmall)
-                        Text(text = joke.punchline, style = MaterialTheme.typography.bodyLarge)
-                        Spacer(modifier = Modifier.height(8.dp))
+                Button(onClick = { viewModel.clearAllJokes() }) {
+                    Text("Clear History")
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+                LazyColumn {
+                    items(history) { joke ->
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    viewModel.selectJokeFromHistory(joke)
+                                    navController.popBackStack()
+                                }
+                                .padding(8.dp)
+                        ) {
+                            Text(text = joke.setup, style = MaterialTheme.typography.headlineSmall)
+                            Text(text = joke.punchline, style = MaterialTheme.typography.bodyLarge)
+                            Spacer(modifier = Modifier.height(8.dp))
+                        }
                     }
                 }
             }
