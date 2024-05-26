@@ -30,7 +30,12 @@ class JokeDatabaseHelperTest {
 
     @Test
     fun insertJoke_success() {
-        val joke = Joke(id = 1, type = "general", setup = "Why did the chicken cross the road?", punchline = "To get to the other side.")
+        val joke = Joke(
+            id = 1,
+            type = "general",
+            setup = "Why did the chicken cross the road?",
+            punchline = "To get to the other side."
+        )
         dbHelper.insertJoke(joke)
         val jokes = dbHelper.getAllJokes()
 
@@ -41,11 +46,34 @@ class JokeDatabaseHelperTest {
 
     }
 
+    @Test(expected = Exception::class)
+    fun insertJoke_existed() {
+        val joke = Joke(
+            id = 1,
+            type = "general",
+            setup = "Why did the chicken cross the road?",
+            punchline = "To get to the other side."
+        )
+        dbHelper.insertJoke(joke)
+        dbHelper.insertJoke(joke)
+
+    }
+
 
     @Test
     fun clearAllJokes_success() {
-        val joke1 = Joke(id = 1, type = "general", setup = "Why did the chicken cross the road?", punchline = "To get to the other side.")
-        val joke2 = Joke(id = 2, type = "general", setup = "What do you call cheese that isn't yours?", punchline = "Nacho cheese.")
+        val joke1 = Joke(
+            id = 1,
+            type = "general",
+            setup = "Why did the chicken cross the road?",
+            punchline = "To get to the other side."
+        )
+        val joke2 = Joke(
+            id = 2,
+            type = "general",
+            setup = "What do you call cheese that isn't yours?",
+            punchline = "Nacho cheese."
+        )
         dbHelper.insertJoke(joke1)
         dbHelper.insertJoke(joke2)
         dbHelper.clearAllJokes()

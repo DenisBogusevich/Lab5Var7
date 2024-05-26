@@ -55,7 +55,32 @@ class JokeDatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_
      * Inserts a joke into the database.
      * @param joke The joke to be inserted.
      */
+
+    fun isJokeExists(joke: Joke): Boolean {
+        val db = readableDatabase
+        val selection = "$COLUMN_TYPE = ? AND $COLUMN_SETUP = ? AND $COLUMN_PUNCHLINE = ?"
+        val selectionArgs = arrayOf(joke.type,joke.setup,joke.punchline)
+
+        val cursor = db.query(
+            TABLE_JOKES,
+            arrayOf(COLUMN_TYPE),
+            selection,
+            selectionArgs,
+            null,
+            null,
+            null
+        )
+
+        val exists = cursor.count > 0
+        cursor.close()
+        return exists
+    }
+
     fun insertJoke(joke: Joke) {
+        if(isJokeExists(joke)) {
+            throw Exception("Already exist")
+        }
+
         val db = writableDatabase
         val values = ContentValues().apply {
             put(COLUMN_TYPE, joke.type)
